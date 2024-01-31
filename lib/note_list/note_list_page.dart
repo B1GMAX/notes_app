@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/notes/add_note_page.dart';
+import 'package:notes_app/add_note/add_note_page.dart';
 import 'package:provider/provider.dart';
 
 import 'notes_list_bloc.dart';
@@ -26,18 +26,18 @@ class NoteListPage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => AddNotePage(),
+                          builder: (context) => const AddNotePage(),
                         ),
                       );
                     },
-                    child: Text(
+                    child: const Text(
                       'Add',
                       style:
                           TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 // Expanded(child: ListView.builder(itemBuilder: )),
               ],
             ),

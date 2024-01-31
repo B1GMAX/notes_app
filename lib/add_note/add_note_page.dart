@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/notes/notes_list_bloc.dart';
+import 'package:notes_app/add_note/add_note_bloc.dart';
+import 'package:notes_app/note_list/notes_list_bloc.dart';
 import 'package:provider/provider.dart';
 
 class AddNotePage extends StatelessWidget {
@@ -7,8 +8,8 @@ class AddNotePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider<NotesBloc>(
-      create: (context) => NotesBloc(),
+    return Provider<AddNoteBloc>(
+      create: (context) => AddNoteBloc(),
       dispose: (context, bloc) => bloc.dispose(),
       lazy: false,
       builder: (context, _) {
@@ -18,21 +19,26 @@ class AddNotePage extends StatelessWidget {
             children: [
               Row(
                 children: [
+                  const SizedBox(width: 18),
                   Expanded(
-                    child: TextField(),
+                    child: TextField(
+                      controller:
+                          context.read<AddNoteBloc>().noteTextEditingController,
+                    ),
                   ),
                   IconButton(
                     onPressed: () {
                       context.read<NotesBloc>().pickImage();
                     },
-                    icon: Icon(Icons.attach_file),
+                    icon: const Icon(Icons.attach_file),
                   ),
+                  const SizedBox(width: 5),
                 ],
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () {},
-                child: Text(
+                child: const Text(
                   'Save note',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
