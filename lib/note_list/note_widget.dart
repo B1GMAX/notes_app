@@ -36,8 +36,13 @@ class NoteWidget extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(date.toString(),
-                style: const TextStyle(fontSize: 16, color: Colors.black)),
+            Text(
+              date.toString(),
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+              ),
+            ),
             const SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

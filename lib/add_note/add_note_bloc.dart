@@ -1,16 +1,19 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:notes_app/models/note_model.dart';
 
 class AddNoteBloc {
   final noteTextEditingController = TextEditingController();
 
   final storageRef = FirebaseStorage.instance.ref();
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
   File? image;
 
@@ -18,10 +21,19 @@ class AddNoteBloc {
     final imageUrl = await _uploadFile();
     final NoteModel note = NoteModel(
       name: noteTextEditingController.text.trim(),
-      date: DateTime.now().toString(),
+      date: convertDate(),
       imageUrl: imageUrl,
     );
-    FirebaseFirestore.instance.collection('notes').doc().set(note.toJson());
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(auth.currentUser!.uid)
+        .collection('notes')
+        .doc()
+        .set(note.toJson());
+  }
+
+  String convertDate() {
+    return DateFormat("yyyy-MM-dd").format(DateTime.now());
   }
 
   Future<void> pickImage() async {
@@ -39,7 +51,7 @@ class AddNoteBloc {
 
   Future<String> _uploadFile() async {
     if (image != null) {
-      String imageId = DateTime.now().millisecondsSinceEpoch.toString();
+      String imageId = DateTime.now().toString();
       Reference ref = FirebaseStorage.instance
           .ref()
           .child("images")
@@ -51,5 +63,7 @@ class AddNoteBloc {
     }
   }
 
-  void dispose() {}
+  void dispose() {
+    noteTextEditingController.dispose();
+  }
 }

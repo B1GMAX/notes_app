@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:notes_app/models/note_model.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:intl/intl.dart';
 
 class NotesBloc {
   final List<NoteModel> notes = [];
@@ -12,23 +12,31 @@ class NotesBloc {
   Stream<List<NoteModel>> get noteModelListStream =>
       _noteModelListController.stream;
 
-  final collection = FirebaseFirestore.instance.collection('notes');
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
-  Stream<List<NoteModel>> getAllNotes() =>
-      collection.snapshots().map((snapshot) {
+  final userCollection = FirebaseFirestore.instance.collection('users');
+
+  Stream<List<NoteModel>> getAllNotes() => userCollection
+          .doc(auth.currentUser!.uid)
+          .collection('notes')
+          .snapshots()
+          .map((snapshot) {
         return snapshot.docs.map((doc) {
           return NoteModel.fromJson(doc.data(), doc.id);
         }).toList();
       });
 
-  String convertDate(String date) {
-    final tempDate = DateFormat("yyyy-MM-dd hh:mm:ss").parse(date);
-    return DateFormat("yyyy-MM-dd").format(tempDate);
-  }
+
 
   void removeNote(String id) {
-    collection.doc(id).delete();
+    userCollection
+        .doc(auth.currentUser!.uid)
+        .collection('notes')
+        .doc(id)
+        .delete();
   }
 
-  void dispose() {}
+  void dispose() {
+    _noteModelListController.close();
+  }
 }

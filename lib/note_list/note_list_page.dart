@@ -51,9 +51,7 @@ class NoteListPage extends StatelessWidget {
                           return NoteWidget(
                             image: snapshot.data![index].imageUrl,
                             name: snapshot.data![index].name,
-                            date: context
-                                .read<NotesBloc>()
-                                .convertDate(snapshot.data![index].date),
+                            date: snapshot.data![index].date,
                             id: snapshot.data![index].id ?? '',
                             onRemove: (id) {
                               context.read<NotesBloc>().removeNote(id);
