@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notes_app/add_note/add_note_bloc.dart';
-import 'package:notes_app/note_list/notes_list_bloc.dart';
+import 'package:notes_app/note_list/note_list_page.dart';
 import 'package:provider/provider.dart';
 
 class AddNotePage extends StatelessWidget {
@@ -28,7 +28,7 @@ class AddNotePage extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () {
-                      context.read<NotesBloc>().pickImage();
+                      context.read<AddNoteBloc>().pickImage();
                     },
                     icon: const Icon(Icons.attach_file),
                   ),
@@ -37,7 +37,15 @@ class AddNotePage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  context.read<AddNoteBloc>().createNote();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NoteListPage(),
+                    ),
+                  );
+                },
                 child: const Text(
                   'Save note',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),

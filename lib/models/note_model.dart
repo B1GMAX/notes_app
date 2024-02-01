@@ -1,20 +1,26 @@
 class NoteModel {
   String name;
-  String image;
+  String imageUrl;
+  String imageName;
   String date;
 
   NoteModel({
     required this.name,
     required this.date,
-    required this.image,
+    required this.imageUrl,
+    required this.imageName,
   });
 
-  factory NoteModel.fromJson(Map<String, dynamic> json) =>
-      NoteModel(name: json['name'], date: json['date'], image: json['image']);
+  factory NoteModel.fromJson(Map<String, dynamic> json) => NoteModel(
+      name: json['name'],
+      date: json['date'],
+      imageUrl: json['image'],
+      imageName: json['imageName']);
 
   Map<String, dynamic> toJson() => {
         'name': name,
-        'image': image,
+        'image': imageUrl,
         'date': date,
+        'imageName': imageName,
       };
 }

@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:notes_app/login/login_page.dart';
 
-import 'firebase_options.dart';
+import 'firebase/firebase_options.dart';
 import 'note_list/note_list_page.dart';
 
 Future<void> main() async {

@@ -1,7 +1,4 @@
-import 'dart:io';
-
-import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:notes_app/models/note_model.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -14,17 +11,11 @@ class NotesBloc {
   Stream<List<NoteModel>> get noteModelListStream =>
       _noteModelListController.stream;
 
-  Future<void> pickImage() async {
-    try{
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-
-      if (image != null) {
-        print('image - $image; image path - ${File(image.path)}');
-      }
-    } on PlatformException catch(e){
-      print('Faild to pick image - $e');
-    }
-  }
+  Stream<List<NoteModel>> getAllNotes() => FirebaseFirestore.instance
+      .collection('notes')
+      .snapshots()
+      .map((snapshot) =>
+      snapshot.docs.map((doc) => NoteModel.fromJson(doc.data())).toList());
 
   void dispose() {}
 }
