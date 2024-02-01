@@ -12,13 +12,7 @@ class AddNoteBloc {
 
   final storageRef = FirebaseStorage.instance.ref();
 
-  AddNoteBloc() {
-    final data = storageRef.child("images/");
-    print('dataaaaaaaa - ${data}');
-  }
-
-  String imageName = '';
-  late File image;
+  File? image;
 
   void createNote() async {
     final imageUrl = await _uploadFile();
@@ -26,7 +20,6 @@ class AddNoteBloc {
       name: noteTextEditingController.text.trim(),
       date: DateTime.now().toString(),
       imageUrl: imageUrl,
-      imageName: imageName,
     );
     FirebaseFirestore.instance.collection('notes').doc().set(note.toJson());
   }
@@ -40,17 +33,22 @@ class AddNoteBloc {
         image = File(imageFromGallery.path);
       }
     } on PlatformException catch (e) {
-      print('Faild to pick imageFromGallery - $e');
+      print('Failed to pick imageFromGallery - $e');
     }
   }
 
   Future<String> _uploadFile() async {
-    String imageId = DateTime.now().millisecondsSinceEpoch.toString();
-    imageName = 'image_$imageId.jps';
-    Reference ref =
-        FirebaseStorage.instance.ref().child("images").child(imageName);
-    await ref.putFile(image);
-    return await ref.getDownloadURL();
+    if (image != null) {
+      String imageId = DateTime.now().millisecondsSinceEpoch.toString();
+      Reference ref = FirebaseStorage.instance
+          .ref()
+          .child("images")
+          .child('image_$imageId.jps');
+      await ref.putFile(image!);
+      return await ref.getDownloadURL();
+    } else {
+      return '';
+    }
   }
 
   void dispose() {}

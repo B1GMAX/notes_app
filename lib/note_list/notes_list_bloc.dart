@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:notes_app/models/note_model.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:intl/intl.dart';
 
 class NotesBloc {
   final List<NoteModel> notes = [];
@@ -11,11 +12,23 @@ class NotesBloc {
   Stream<List<NoteModel>> get noteModelListStream =>
       _noteModelListController.stream;
 
-  Stream<List<NoteModel>> getAllNotes() => FirebaseFirestore.instance
-      .collection('notes')
-      .snapshots()
-      .map((snapshot) =>
-      snapshot.docs.map((doc) => NoteModel.fromJson(doc.data())).toList());
+  final collection = FirebaseFirestore.instance.collection('notes');
+
+  Stream<List<NoteModel>> getAllNotes() =>
+      collection.snapshots().map((snapshot) {
+        return snapshot.docs.map((doc) {
+          return NoteModel.fromJson(doc.data(), doc.id);
+        }).toList();
+      });
+
+  String convertDate(String date) {
+    final tempDate = DateFormat("yyyy-MM-dd hh:mm:ss").parse(date);
+    return DateFormat("yyyy-MM-dd").format(tempDate);
+  }
+
+  void removeNote(String id) {
+    collection.doc(id).delete();
+  }
 
   void dispose() {}
 }

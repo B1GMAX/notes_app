@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notes_app/add_note/add_note_page.dart';
 import 'package:notes_app/models/note_model.dart';
+import 'package:notes_app/note_list/note_widget.dart';
 import 'package:provider/provider.dart';
 
 import 'notes_list_bloc.dart';
@@ -47,14 +48,16 @@ class NoteListPage extends StatelessWidget {
                       return ListView.builder(
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
-                          return Container(
-                            child: Row(
-                              children: [
-                                Text(snapshot.data![index].name, style: const TextStyle(color: Colors.black),),
-                                const SizedBox(width: 15),
-                                Image.network(snapshot.data![index].imageUrl,),
-                              ],
-                            ),
+                          return NoteWidget(
+                            image: snapshot.data![index].imageUrl,
+                            name: snapshot.data![index].name,
+                            date: context
+                                .read<NotesBloc>()
+                                .convertDate(snapshot.data![index].date),
+                            id: snapshot.data![index].id ?? '',
+                            onRemove: (id) {
+                              context.read<NotesBloc>().removeNote(id);
+                            },
                           );
                         },
                       );
