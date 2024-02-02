@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:rxdart/rxdart.dart';
 
 class LoginBloc {
@@ -11,11 +13,9 @@ class LoginBloc {
 
   Stream<bool> get isSignUpStream => _isSignUpController.stream;
 
-  void changeSignType(bool type) {
-    _isSignUpController.add(type);
-  }
+  Sink<bool> get isSignUpSink => _isSignUpController.sink;
 
-  void logIn() async {
+  Future<bool> logIn() async {
     try {
       final newUser =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -24,21 +24,35 @@ class LoginBloc {
       );
       if (newUser.user != null) {
         FirebaseFirestore.instance.collection('users').doc(newUser.user!.uid);
+        return true;
       }
-    } catch (e, s) {
-      print('logIn error - $s');
+    } on FirebaseAuthException catch (e) {
+      e.code == 'email-already-in-use'
+          ? Fluttertoast.showToast(
+              msg: "This email is already in use",
+            )
+          : Fluttertoast.showToast(
+              msg: "Something went wrong",
+            );
     }
+    return false;
   }
 
-  void signIn() async {
+  Future<bool> signUp() async {
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final signedUser = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailTextController.text.trim(),
         password: passwordController.text.trim(),
       );
-    } catch (e, s) {
-      print('signIn error - $s');
+      if (signedUser.user != null) {
+        return true;
+      }
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "Registration error",
+      );
     }
+    return false;
   }
 
   void dispose() {

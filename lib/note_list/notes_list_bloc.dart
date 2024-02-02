@@ -1,42 +1,45 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:notes_app/models/note_model.dart';
 import 'package:rxdart/rxdart.dart';
 
 class NotesBloc {
-  final List<NoteModel> notes = [];
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  final BehaviorSubject<List<NoteModel>> _noteModelListController =
-      BehaviorSubject();
+  final _userCollection = FirebaseFirestore.instance.collection('users');
 
-  Stream<List<NoteModel>> get noteModelListStream =>
-      _noteModelListController.stream;
+  final _collectionController = BehaviorSubject<List<NoteModel>>();
 
-  final FirebaseAuth auth = FirebaseAuth.instance;
+  Stream<List<NoteModel>> get notes => _collectionController.stream;
 
-  final userCollection = FirebaseFirestore.instance.collection('users');
+  StreamSubscription? collectionListener;
 
-  Stream<List<NoteModel>> getAllNotes() => userCollection
-          .doc(auth.currentUser!.uid)
-          .collection('notes')
-          .snapshots()
-          .map((snapshot) {
-        return snapshot.docs.map((doc) {
-          return NoteModel.fromJson(doc.data(), doc.id);
-        }).toList();
-      });
-
-
+  NotesBloc() {
+    collectionListener = _userCollection
+        .doc(_auth.currentUser!.uid)
+        .collection('notes')
+        .snapshots()
+        .listen((querySnapshot) {
+      _collectionController.add(querySnapshot.docs
+          .map(
+            (doc) => NoteModel.fromJson(doc.data(), doc.id),
+          )
+          .toList());
+    });
+  }
 
   void removeNote(String id) {
-    userCollection
-        .doc(auth.currentUser!.uid)
+    _userCollection
+        .doc(_auth.currentUser!.uid)
         .collection('notes')
         .doc(id)
         .delete();
   }
 
   void dispose() {
-    _noteModelListController.close();
+    collectionListener?.cancel();
+    _collectionController.close();
   }
 }

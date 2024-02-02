@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:notes_app/add_note/add_note_bloc.dart';
-import 'package:notes_app/note_list/note_list_page.dart';
 import 'package:provider/provider.dart';
 
 class AddNotePage extends StatelessWidget {
@@ -11,7 +10,6 @@ class AddNotePage extends StatelessWidget {
     return Provider<AddNoteBloc>(
       create: (context) => AddNoteBloc(),
       dispose: (context, bloc) => bloc.dispose(),
-      lazy: false,
       builder: (context, _) {
         return Scaffold(
           body: Padding(
@@ -19,57 +17,77 @@ class AddNotePage extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: context
-                            .read<AddNoteBloc>()
-                            .noteTextEditingController,
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 2, color: Colors.deepPurpleAccent),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 2, color: Colors.deepPurpleAccent),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    IconButton(
-                      onPressed: () {
-                        context.read<AddNoteBloc>().pickImage();
-                      },
-                      icon: const Icon(Icons.attach_file,
-                          color: Colors.deepPurpleAccent, size: 32),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      context.read<AddNoteBloc>().createNote();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const NoteListPage(),
-                        ),
-                      );
+                GestureDetector(
+                  onTap: context.read<AddNoteBloc>().pickImage,
+                  child: StreamBuilder(
+                    stream: context.read<AddNoteBloc>().fileImageStream,
+                    builder: (context, snapshot) {
+                      return snapshot.hasData
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Image.file(
+                                snapshot.data!,
+                                height: 90,
+                                width: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : const Text(
+                              'Choose image',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.deepPurpleAccent),
+                            );
                     },
-                    child: const Text(
-                      'Save note',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(height: 35),
+                TextField(
+                  controller:
+                      context.read<AddNoteBloc>().noteTextEditingController,
+                  decoration: InputDecoration(
+                    hintText: 'Input note name...',
+                    hintStyle: const TextStyle(fontSize: 14),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                          width: 2, color: Colors.deepPurpleAccent),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                          width: 2, color: Colors.deepPurpleAccent),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
+                ),
+                const SizedBox(height: 20),
+                StreamBuilder<bool>(
+                  initialData: false,
+                  stream: context.read<AddNoteBloc>().isNoteSavedStream,
+                  builder: (context, snapshot) {
+                    return !snapshot.data!
+                        ? SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final isSuccess = await context
+                                    .read<AddNoteBloc>()
+                                    .createNote();
+                                if (isSuccess && context.mounted) {
+                                  Navigator.pop(context);
+                                }
+                              },
+                              child: const Text(
+                                'Save note',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          )
+                        : const CircularProgressIndicator();
+                  },
                 ),
               ],
             ),

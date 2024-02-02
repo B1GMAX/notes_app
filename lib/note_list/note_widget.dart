@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class NoteWidget extends StatelessWidget {
   final String name;
-  final String image;
+  final String? image;
   final String date;
   final String id;
   final Function(String) onRemove;
@@ -37,9 +37,9 @@ class NoteWidget extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              date.toString(),
+              date,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 12,
                 color: Colors.black,
               ),
             ),
@@ -53,14 +53,25 @@ class NoteWidget extends StatelessWidget {
                     style: const TextStyle(fontSize: 16, color: Colors.black),
                   ),
                 ),
-                if (image.isNotEmpty)
+                if (image != null)
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
+                    borderRadius: BorderRadius.circular(10.0),
                     child: Image.network(
-                      image,
+                      image!,
                       height: 90,
-                      width: 100,
+                      width: 90,
                       fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        return loadingProgress == null
+                            ? child
+                            : const SizedBox(
+                                height: 90,
+                                width: 90,
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                      },
                     ),
                   ),
               ],

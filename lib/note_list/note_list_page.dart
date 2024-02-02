@@ -12,53 +12,51 @@ class NoteListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Provider<NotesBloc>(
-      lazy: false,
       create: (BuildContext context) => NotesBloc(),
-      dispose: (context, bloc) => bloc.dispose(),
       builder: (context, _) {
         return Scaffold(
           body: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AddNotePage(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Add',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddNotePage(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Add',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
                 const SizedBox(height: 20),
                 Expanded(
                   child: StreamBuilder<List<NoteModel>>(
-                    initialData: const [],
-                    stream: context.read<NotesBloc>().getAllNotes(),
+                    stream: context.read<NotesBloc>().notes,
                     builder: (context, snapshot) {
-                      return ListView.builder(
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) {
-                          return NoteWidget(
-                            image: snapshot.data![index].imageUrl,
-                            name: snapshot.data![index].name,
-                            date: snapshot.data![index].date,
-                            id: snapshot.data![index].id ?? '',
-                            onRemove: (id) {
-                              context.read<NotesBloc>().removeNote(id);
-                            },
-                          );
-                        },
-                      );
+                      return snapshot.hasData
+                          ? ListView.builder(
+                              padding: EdgeInsets.zero,
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, index) {
+                                return NoteWidget(
+                                  image: snapshot.data![index].imageUrl,
+                                  name: snapshot.data![index].name,
+                                  date: snapshot.data![index].date,
+                                  id: snapshot.data![index].id ?? '',
+                                  onRemove:
+                                      context.read<NotesBloc>().removeNote,
+                                );
+                              },
+                            )
+                          : const Center(
+                              child: CircularProgressIndicator(),
+                            );
                     },
                   ),
                 ),

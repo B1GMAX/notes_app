@@ -8,62 +8,83 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:notes_app/models/note_model.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class AddNoteBloc {
   final noteTextEditingController = TextEditingController();
 
-  final storageRef = FirebaseStorage.instance.ref();
-  final FirebaseAuth auth = FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  File? image;
+  final _isNoteSavedController = BehaviorSubject<bool>();
 
-  void createNote() async {
-    final imageUrl = await _uploadFile();
-    final NoteModel note = NoteModel(
-      name: noteTextEditingController.text.trim(),
-      date: convertDate(),
-      imageUrl: imageUrl,
-    );
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(auth.currentUser!.uid)
-        .collection('notes')
-        .doc()
-        .set(note.toJson());
-  }
+  final _fileImageController = BehaviorSubject<File>();
 
-  String convertDate() {
-    return DateFormat("yyyy-MM-dd").format(DateTime.now());
+  Stream<bool> get isNoteSavedStream => _isNoteSavedController.stream;
+
+  Stream<File> get fileImageStream => _fileImageController.stream;
+
+  File? _image;
+
+  Future<bool> createNote() async {
+    if (noteTextEditingController.text.isNotEmpty) {
+      _isNoteSavedController.add(true);
+      final imageUrl = await _uploadFile();
+      final NoteModel note = NoteModel(
+        name: noteTextEditingController.text.trim(),
+        date: DateFormat("yyyy-MM-dd").format(DateTime.now()),
+        imageUrl: imageUrl,
+      );
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_auth.currentUser!.uid)
+          .collection('notes')
+          .doc()
+          .set(note.toJson());
+
+      _isNoteSavedController.add(false);
+      return true;
+    }
+    return false;
   }
 
   Future<void> pickImage() async {
     try {
       final imageFromGallery =
           await ImagePicker().pickImage(source: ImageSource.gallery);
-
       if (imageFromGallery != null) {
-        image = File(imageFromGallery.path);
+        _image = File(imageFromGallery.path);
+        if (_image != null) {
+          _fileImageController.add(_image!);
+        }
       }
-    } on PlatformException catch (e) {
-      print('Failed to pick imageFromGallery - $e');
+    } on PlatformException {
+      Fluttertoast.showToast(
+        msg: "Failed to pick image from gallery",
+      );
     }
   }
 
-  Future<String> _uploadFile() async {
-    if (image != null) {
-      String imageId = DateTime.now().toString();
-      Reference ref = FirebaseStorage.instance
+  Future<String?> _uploadFile() async {
+    if (_image != null) {
+      final Reference ref = FirebaseStorage.instance
           .ref()
           .child("images")
-          .child('image_$imageId.jps');
-      await ref.putFile(image!);
-      return await ref.getDownloadURL();
-    } else {
-      return '';
+          .child('image_${DateTime.now().toString()}.jpg');
+      final uploadResult = await ref.putFile(_image!);
+      if (uploadResult.state == TaskState.success) {
+        return await ref.getDownloadURL();
+      } else {
+        Fluttertoast.showToast(
+          msg: "Something went wrong when load image",
+        );
+      }
     }
+    return null;
   }
 
   void dispose() {
     noteTextEditingController.dispose();
+    _isNoteSavedController.close();
   }
 }

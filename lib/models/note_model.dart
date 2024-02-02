@@ -1,8 +1,8 @@
 class NoteModel {
-  String name;
-  String imageUrl;
-  String? id;
-  String date;
+  final String name;
+  final String? imageUrl;
+  final String? id;
+  final String date;
 
   NoteModel({
     required this.name,
@@ -22,6 +22,5 @@ class NoteModel {
         'name': name,
         'image': imageUrl,
         'date': date,
-        'id': id,
       };
 }
